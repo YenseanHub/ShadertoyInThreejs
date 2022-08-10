@@ -3,12 +3,15 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { EffectComposer, Pass } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 // tintPass
 import tintVS from './shaders/tint/vertex.glsl'
 import tintFS from './shaders/tint/fragment.glsl'
+// sketchPass
+import sketchVS from './shaders/sketch/vertex.glsl'
+import sketchFS from './shaders/sketch/fragment.glsl'
 
 /**
  * Base
@@ -162,23 +165,45 @@ effectComposer.addPass(renderPass)
 
 
 // Tin pass
-const TintShader = {
+// const TintShader = {
+//     uniforms:
+//     {
+//         tDiffuse: { value: null },
+//         uTint: { value: null }
+//     },
+//     vertexShader: tintVS,
+//     fragmentShader: tintFS
+// }
+// const tintPass = new ShaderPass(TintShader)
+// tintPass.material.uniforms.uTint.value = new THREE.Vector3()
+// effectComposer.addPass(tintPass)
+
+// gui.add(tintPass.material.uniforms.uTint.value, 'x').min(- 1).max(1).step(0.001).name('red')
+// gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
+// gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
+
+
+// sketch Pass
+const SketchShader = {
     uniforms:
     {
-        tDiffuse: { value: null },
-        uTint: { value: null }
+        tDiffuse: { type:'t', value: null },
+        iResolution: { type:'v2', value: new THREE.Vector2(sizes.width, sizes.height) },
+        MAGIC_GRAD_THRESH:{ type:'f', value: 0.01 }, // gradient threshold 梯度阈值
+        MAGIC_SENSITIVITY:{ type:'f', value: 10. }, // Sensitivity 敏感度
+        MAGIC_COLOR:{ type:'f', value: 0.5 }, // color threshold 颜色阈值
     },
-    vertexShader: tintVS,
-    fragmentShader: tintFS
+    vertexShader: sketchVS,
+    fragmentShader: sketchFS
 }
+const SketchPass = new ShaderPass(SketchShader)
+effectComposer.addPass(SketchPass)
 
-const tintPass = new ShaderPass(TintShader)
-tintPass.material.uniforms.uTint.value = new THREE.Vector3()
-effectComposer.addPass(tintPass)
 
-gui.add(tintPass.material.uniforms.uTint.value, 'x').min(- 1).max(1).step(0.001).name('red')
-gui.add(tintPass.material.uniforms.uTint.value, 'y').min(- 1).max(1).step(0.001).name('green')
-gui.add(tintPass.material.uniforms.uTint.value, 'z').min(- 1).max(1).step(0.001).name('blue')
+gui.add(SketchPass.material.uniforms.MAGIC_GRAD_THRESH, 'value').min(0.0001).max(0.1).step(0.001).name('GRAD_THRESH')
+gui.add(SketchPass.material.uniforms.MAGIC_SENSITIVITY, 'value').min(0).max(25).step(1).name('SENSITIVITY')
+gui.add(SketchPass.material.uniforms.MAGIC_COLOR, 'value').min(0).max(1).step(0.1).name('COLOR')
+
 
 
 /**
