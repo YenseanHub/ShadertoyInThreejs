@@ -1,5 +1,14 @@
 # 欢迎来到 Shadertoy In Threejs
 
+## 着色器效果
+### sketch 素描特效
+default parameter
+![](/effectImg/sketchEffect.png "default parameter")
+modified parameter
+![](/effectImg/sketchEffect2.png "modified parameter")
+
+
+
 ## 开发指南
 如何运行这个项目
 
